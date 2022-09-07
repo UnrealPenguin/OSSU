@@ -3,6 +3,8 @@
 # Collaborators:
 # Time:
 
+import enum
+from posixpath import split
 import feedparser
 import string
 import time
@@ -97,12 +99,50 @@ class Trigger(object):
 
 # Problem 2
 # TODO: PhraseTrigger
+class PhaseTrigger(Trigger):
+    def __init__(self, phrase):
+        # phrase to lower case
+        phrase = phrase.lower()
+        self.phrase = phrase
+
+    def is_phrase_in(self, text):
+        flag = False
+        clean_text = text.lower()
+        # clean_text = clean_text.translate(str.maketrans("" ,"", string.punctuation))
+        clean_text = "".join([(ch if ch not in string.punctuation else " ") for ch in clean_text ])
+        clean_text = clean_text.split()
+        phrase = self.phrase.split()
+
+        for i, word in enumerate(clean_text):
+            j=0
+            if word in phrase:
+                while j < len(phrase):
+                    if clean_text[i+j] == phrase[j]:
+                        flag = True
+                    else:
+                        # breaks out of the loop as soon as the text doesnt match
+                        flag = False
+                        break
+                    j+=1
+                # breaks out of the loop after it finds a word that matches
+                break
+        
+        return True if flag else False 
+
+# a = PhaseTrigger('Purple Cow')
+# print(a.is_phrase_in("purplecowpurplecowpurplecow"))
 
 # Problem 3
 # TODO: TitleTrigger
+class TitleTrigger(PhaseTrigger):
+    def evaluate(self, story):
+        return self.is_phrase_in(story.get_title())
 
 # Problem 4
 # TODO: DescriptionTrigger
+class DescriptionTrigger(PhaseTrigger):
+    def evaluate(self, story):
+        return self.is_phrase_in(story.get_description())
 
 # TIME TRIGGERS
 
