@@ -129,9 +129,6 @@ class PhaseTrigger(Trigger):
         
         return True if flag else False 
 
-# a = PhaseTrigger('Purple Cow')
-# print(a.is_phrase_in("purplecowpurplecowpurplecow"))
-
 # Problem 3
 # TODO: TitleTrigger
 class TitleTrigger(PhaseTrigger):
@@ -151,21 +148,72 @@ class DescriptionTrigger(PhaseTrigger):
 # Constructor:
 #        Input: Time has to be in EST and in the format of "%d %b %Y %H:%M:%S".
 #        Convert time from string to a datetime before saving it as an attribute.
+class TimeTrigger(Trigger):
+    def __init__(self, time):
+        self.time = datetime.strptime(time, '%d %b %Y %H:%M:%S')
+
 
 # Problem 6
 # TODO: BeforeTrigger and AfterTrigger
+class BeforeTrigger(TimeTrigger):
+    def evaluate(self, story):
+
+        current_date = self.time.replace(tzinfo=pytz.timezone('EST'))
+        pubdate = story.get_pubdate().replace(tzinfo=pytz.timezone('EST'))
+
+        if current_date > pubdate:
+            return True
+        else:
+            return False
+
+class AfterTrigger(TimeTrigger):
+    def evaluate(self, story):
+
+        current_date = self.time.replace(tzinfo=pytz.timezone('EST'))
+        pubdate = story.get_pubdate().replace(tzinfo=pytz.timezone('EST'))
+
+        if current_date < pubdate:
+            return True
+        else:
+            return False
 
 
 # COMPOSITE TRIGGERS
 
 # Problem 7
 # TODO: NotTrigger
+class NotTrigger(Trigger):
+    def __init__(self, trigger):
+        self.trigger = trigger
+
+    def evaluate(self, story):
+        return not self.trigger.evaluate(story)
 
 # Problem 8
 # TODO: AndTrigger
+class AndTrigger(Trigger):
+    def __init__(self, trigger1, trigger2):
+        self.trigger1 = trigger1
+        self.trigger2 = trigger2
+
+    def evaluate(self,story):
+        if self.trigger1.evaluate(story) and self.trigger2.evaluate(story):
+            return True
+        else:
+            return False
 
 # Problem 9
 # TODO: OrTrigger
+class OrTrigger(Trigger):
+    def __init__(self, trigger1, trigger2):
+        self.trigger1 = trigger1
+        self.trigger2 = trigger2
+
+    def evaluate(self, story):
+        if self.trigger1.evaluate(story) or self.trigger2.evaluate(story):
+            return True
+        else:
+            return False
 
 
 #======================
@@ -182,7 +230,14 @@ def filter_stories(stories, triggerlist):
     # TODO: Problem 10
     # This is a placeholder
     # (we're just returning all the stories, with no filtering)
-    return stories
+    filtered_stories = []
+    for story in stories:
+        # if any([T.evaluate(story) for T in triggerlist]): <-- cleaner way to write it
+        for trigger in triggerlist:
+            if trigger.evaluate(story):
+                filtered_stories.append(story)            
+            
+    return filtered_stories
 
 
 
@@ -209,10 +264,38 @@ def read_trigger_config(filename):
     # TODO: Problem 11
     # line is the list of lines that you need to parse and for which you need
     # to build triggers
+    toTrigger = []
+    listTrigger = {}
+    for line in lines:
+        data = line.split(",")
+        if data[0] == "ADD":
+            for i in range(1, len(data)):
+                # toTrigger.append(listTrigger.get(data[i]))
+                # print(listTrigger)
+                # print(listTrigger.get(data[i]))
+                pass
+                
+        else:
+            listTrigger[data[0]]=read_data(data[0], data[1], data[2:])
+    return toTrigger
+        
+def read_data(_name, _definition, _args):
 
-    print(lines) # for now, print it so you see what it contains!
-
-
+    if _definition == "TITLE":
+        return TitleTrigger(_args[0])
+    elif _definition == "DESCRIPTION":
+        return DescriptionTrigger(_args[0])
+    elif _definition == "AFTER":
+        return AfterTrigger(_args[0])
+    elif _definition == "BEFORE":
+        return BeforeTrigger(_args[0])
+    elif _definition == "NOT":
+        return NotTrigger(_name)
+    elif _definition == "AND":
+        return AndTrigger(_args[0], _args[1])
+    else:
+        return OrTrigger(_args[0], _args[1])
+        
 
 SLEEPTIME = 120 #seconds -- how often we poll
 
@@ -225,10 +308,9 @@ def main_thread(master):
         t3 = DescriptionTrigger("Clinton")
         t4 = AndTrigger(t2, t3)
         triggerlist = [t1, t4]
-
         # Problem 11
         # TODO: After implementing read_trigger_config, uncomment this line 
-        # triggerlist = read_trigger_config('triggers.txt')
+        triggerlist = read_trigger_config('triggers.txt')
         
         # HELPER CODE - you don't need to understand this!
         # Draws the popup window that displays the filtered stories
@@ -264,7 +346,7 @@ def main_thread(master):
             stories = process("http://news.google.com/news?output=rss")
 
             # Get stories from Yahoo's Top Stories RSS news feed
-            stories.extend(process("http://news.yahoo.com/rss/topstories"))
+            # stories.extend(process("http://news.yahoo.com/rss/topstories"))
 
             stories = filter_stories(stories, triggerlist)
 
