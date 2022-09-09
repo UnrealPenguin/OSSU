@@ -3,7 +3,7 @@
 // stories!
 
 // title trigger named t1
-t1,TITLE,election
+t1,TITLE,queen
 
 // description trigger named t2
 t2,DESCRIPTION,Trump

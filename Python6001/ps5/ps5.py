@@ -270,16 +270,12 @@ def read_trigger_config(filename):
         data = line.split(",")
         if data[0] == "ADD":
             for i in range(1, len(data)):
-                # toTrigger.append(listTrigger.get(data[i]))
-                # print(listTrigger)
-                # print(listTrigger.get(data[i]))
-                pass
-                
+                toTrigger.append(listTrigger.get(data[i]))
         else:
-            listTrigger[data[0]]=read_data(data[0], data[1], data[2:])
+            listTrigger[data[0]]=read_data(data[0], data[1], data[2:], listTrigger)
     return toTrigger
         
-def read_data(_name, _definition, _args):
+def read_data(_name, _definition, _args, _listTrigger):
 
     if _definition == "TITLE":
         return TitleTrigger(_args[0])
@@ -292,9 +288,9 @@ def read_data(_name, _definition, _args):
     elif _definition == "NOT":
         return NotTrigger(_name)
     elif _definition == "AND":
-        return AndTrigger(_args[0], _args[1])
+        return AndTrigger(_listTrigger[_args[0]], _listTrigger[_args[1]])
     else:
-        return OrTrigger(_args[0], _args[1])
+        return OrTrigger(_listTrigger[_args[0]], _listTrigger[_args[1]])
         
 
 SLEEPTIME = 120 #seconds -- how often we poll
