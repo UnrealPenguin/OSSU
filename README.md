@@ -9,4 +9,5 @@ Here lies all the problem sets and projects completed so far from the courses in
 
 
 ## Features
-  * Python6001 - Introduction to Computer Science and Programming in Python
+  * __Python6001__ - Introduction to Computer Science and Programming in Python
+  * __How to code simple data__ - This programming course takes a unique approach, as it focuses on learning a systematic programming method rather than a programming language. This practical approach will help you channel your creativity so that you can program well in any language.
